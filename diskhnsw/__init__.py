@@ -1,1 +1,1 @@
-from diskhnsw import DiskHNSW
+from .diskhnsw import DiskHNSW
