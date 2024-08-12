@@ -1,10 +1,8 @@
-from setuptools import find_packages, setup
+from setuptools import setup, find_packages
 
 setup(
-    name="diskhnsw",
-    version="0.0.1",
-    python_requires=">=3.9, <3.12", 
-    license="APACHE 2.0",
-    package_dir={'': 'diskhnsw'},
-    packages=find_packages('diskhnsw'),
+    name='diskhnsw',
+    version='0.0.1',
+    packages=find_packages(),
+    install_requires=[],
 )
