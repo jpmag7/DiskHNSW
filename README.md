@@ -1,18 +1,67 @@
-# DiskHNSW: Disk-Based Hierarchical Navigable Small World Index
+# DiskVec
 
-DiskHNSW is a Python implementation of a disk-based Hierarchical Navigable Small World (HNSW) index for efficient approximate nearest neighbor search. This implementation is designed to handle large datasets that exceed available RAM by storing the index structure on disk.
+DiskVec is a Python package for efficient storage and retrieval of high-dimensional vectors on disk. It implements a tree-based index structure for fast approximate nearest neighbor search.
 
-## Key Features:
-- Disk-based storage for scalability
-- Efficient approximate nearest neighbor search
-- Automatic saving and loading of index state
-- Support for high-dimensional vector data
-- Configurable index parameters (M, ef_construction, num_layers)
+## Features
 
-## Use Cases:
-- Large-scale similarity search
-- Recommendation systems
-- Content-based retrieval
-- Machine learning applications requiring fast nearest neighbor lookups
+- Disk-based storage for large vector datasets
+- Fast approximate nearest neighbor search
+- Support for custom vector dimensions and data types
+- Efficient batch insertion of vectors
 
-This repository includes the core DiskHNSW class implementation and a test script to demonstrate its usage and verify functionality.
+## Installation
+
+```bash
+pip install diskvec
+```
+
+## Quick Start
+
+```python
+import numpy as np
+from diskvec import DiskVec
+
+# Initialize DiskVec
+index = DiskVec("my_index", dim=128, dtype=np.float64)
+
+# Insert vectors
+vectors = np.random.rand(1000, 128).astype(np.float64)
+values = np.arange(1000)
+index.insert(vectors, values)
+
+# Search
+query = np.random.rand(128).astype(np.float64)
+value, vector, distance = index.search(query)
+
+# Close the index
+index.close()
+```
+
+## API Reference
+
+### DiskVec
+
+```python
+DiskVec(file: str, dim: int, efc: int = 32, dtype: np.dtype = np.float64, ...)
+```
+
+- `file`: Path to the index file
+- `dim`: Dimension of the vectors
+- `efc`: Number of children per node in the tree
+- `dtype`: Data type of the vectors
+- `overwrite`: Whether to overwrite an existing index
+- `chunk_size`: Number of vectors to process at once
+- `max_map_step`: Maximum size increment in bytes of the data file
+- `id_bytes`: Number of bytes to represent vector IDs
+- `values_dtype`: Data type of the value elements
+
+### Methods
+
+- `insert(vecs: np.array, values: np.array)`: Insert vectors and their corresponding values
+- `search(query: np.array)`: Search for the closest vector to the query
+- `close()`: Close the index
+- `delete()`: Delete the index from the file system
+
+## License
+
+[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
