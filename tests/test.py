@@ -1,55 +1,47 @@
+from diskvec import DiskVec
 import numpy as np
-from diskhnsw import DiskHNSW
-import traceback
+import time
 
-# Test parameters
 dim = 128
-max_elements = 10000
-num_test_vectors = 1000
-k = 5  # Number of nearest neighbors to retrieve
+size = 10_000
+tests = 1_000
+index = DiskVec("index", dim, overwrite=True)
 
-try:
-    print("Creating index...")
-    hnsw = DiskHNSW("hnsw_index", dim=dim, max_elements=max_elements)
+vects = np.random.rand(size, dim)
+vals  = np.arange(size)
+start = time.time()
+index.insert(vects, vals)
 
-    # Generate and add test vectors
-    print(f"Adding {num_test_vectors} vectors to the index...")
-    test_vectors = np.random.random((num_test_vectors, dim)).astype(np.float32)
-    for i, vector in enumerate(test_vectors):
-        hnsw.add_item(vector)
-        if (i + 1) % 100 == 0:
-            print(f"Added {i + 1} vectors")
+index = DiskVec("index", dim)
+print("Index reloaded from disk")
 
-    # Perform a search
-    print("\nPerforming a search...")
-    query_vector = np.random.random(dim).astype(np.float32)
-    results = hnsw.search(query_vector, k=k)
-    print("Search results before saving:")
-    for idx, distance in results:
-        print(f"Index: {idx}, Distance: {distance}")
+print(f"Insertion time: {time.time() - start}s")
+print(f"Layer count: {index.layer_count}")
+print(f"Vector count: {index.vec_count}")
 
-    # Load the index
-    print("\nLoading the index...")
-    loaded_hnsw = DiskHNSW.load("hnsw_index")
 
-    # Perform a search on the loaded index
-    print("\nPerforming a search on the loaded index...")
-    results = loaded_hnsw.search(query_vector, k=k)
-    print("Search results after loading:")
-    for idx, distance in results:
-        print(f"Index: {idx}, Distance: {distance}")
+res1 = []
+res2 = []
+dists = []
+times = []
+for _ in range(tests):
+    r = np.random.randint(0, vects.shape[0])
+    vec = vects[r]
+    val = vals[r]
+    start = time.time()
+    v, answer, dist = index.search(vec)
+    times.append(time.time() - start)
+    distances = np.linalg.norm(vects - vec, axis=1)
+    min_index = np.argmin(distances)
+    r1 = all(vects[min_index] == answer)
+    r2 = v == val
+    res1.append(1 if r1 else 0)
+    res2.append(1 if r2 else 0)
+    if r1: dists.append(dist)
 
-    # Verify that the results are the same
-    print("\nVerifying results...")
-    original_indices = set(idx for idx, _ in results)
-    loaded_indices = set(idx for idx, _ in loaded_hnsw.search(query_vector, k=k))
-    if original_indices == loaded_indices:
-        print("Test passed: Search results are consistent before and after saving/loading.")
-    else:
-        print("Test failed: Search results are different before and after saving/loading.")
-
-    print("\nTest completed successfully.")
-
-except Exception as e:
-    print(f"An error occurred: {str(e)}")
-    print(traceback.format_exc())
+if len(res1) > 0:
+    print("Tests:", sum(res1))
+    print("Vector accuracy:", sum(res1) / len(res1))
+    print("Value accuracy:", sum(res2) / len(res2))
+    print("Avg dist:", sum(dists) / max(len(dists), 1))
+    print("Avg time:", sum(times) / max(len(times), 1))
