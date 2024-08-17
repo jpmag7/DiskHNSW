@@ -12,7 +12,7 @@ DiskVec is a Python package for efficient storage and retrieval of high-dimensio
 ## Installation
 
 ```bash
-pip install diskvec
+pip install git+https://github.com/jpmag7/DiskVec.git
 ```
 
 ## Quick Start
