@@ -7,6 +7,29 @@ import os
 
 
 class DiskVec:
+
+    dtype_to_string : dict = {
+        np.bool_: 'bool',
+        np.int8: 'int8',
+        np.int16: 'int16',
+        np.int32: 'int32',
+        np.int64: 'int64',
+        np.uint8: 'uint8',
+        np.uint16: 'uint16',
+        np.uint32: 'uint32',
+        np.uint64: 'uint64',
+        np.float16: 'float16',
+        np.float32: 'float32',
+        np.float64: 'float64',
+        np.complex64: 'complex64',
+        np.complex128: 'complex128',
+        np.str_: 'str',
+        np.datetime64: 'datetime64',
+        np.timedelta64: 'timedelta64',
+        np.object_: 'object'
+    }
+    string_to_dtype : dict = {v: k for k, v in dtype_to_string.items()}
+    
     def __init__(
         self,
         file:str,
@@ -64,12 +87,12 @@ class DiskVec:
             data = {
                 "dim" : self.dim,
                 "efc" : self.efc,
-                "dtype" : self.dtype.__name__,
+                "dtype" : DiskVec.dtype_to_string[self.dtype],
                 "chunk_size" : self.chunk_size,
                 "vec_count" : self.vec_count,
                 "layer_count" : self.layer_count,
                 "max_map_step" : self.max_map_step,
-                "values_dtype" : self.values_dtype.__name__,
+                "values_dtype" : DiskVec.dtype_to_string[self.values_dtype],
                 "_id_size" : self._id_size,
                 "_dtype_size" : self._dtype_size,
                 "_values_size" : self._values_size,
@@ -80,8 +103,8 @@ class DiskVec:
     def _load_metadata(self):
         with open(os.path.join(self.file, "metadata.json"), "r") as f:
             data = json.loads(f.read())
-        data["dtype"] = np.dtype(data["dtype"])
-        data["values_dtype"] = np.dtype(data["values_dtype"])
+        data["dtype"] = DiskVec.string_to_dtype[data["dtype"]]
+        data["values_dtype"] = DiskVec.string_to_dtype[data["values_dtype"]]
         for k, v in data.items():
             setattr(self, k, v)
 
